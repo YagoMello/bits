@@ -4,7 +4,7 @@
 /* Bit abstraction library
  * Author:  Yago T. de Mello
  * e-mail:  yago.t.mello@gmail.com
- * Version: 2.5.0 2021-11-24
+ * Version: 2.6.0 2021-11-24
  * License: Apache 2.0
  * C++20
  */
@@ -65,10 +65,8 @@ public:
     }
     
     // Move constructor
-    // Copies the function pointers
-    bit(bit && obj) noexcept {
-        this->clone(obj);
-    }
+    // Makes no sense
+    bit(bit && obj) = delete;
     
     // Sets the bit value
     constexpr bit & operator =(const bool value) {
@@ -82,7 +80,7 @@ public:
     
     // Forces this object to use the other object's
     // function pointers
-    constexpr void clone(const bit & obj) noexcept {
+    constexpr void same_as(const bit & obj) noexcept {
         this->func_write_ = obj.func_write_;
         this->func_read_ = obj.func_read_;
     }
