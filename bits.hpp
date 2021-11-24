@@ -4,7 +4,7 @@
 /* Bit abstraction library
  * Author:  Yago T. de Mello
  * e-mail:  yago.t.mello@gmail.com
- * Version: 2.4.0 2021-11-24
+ * Version: 2.5.0 2021-11-24
  * License: Apache 2.0
  * C++20
  */
@@ -33,6 +33,12 @@ namespace bits {
 // when reg_type is a pointer
 template <typename T>
 concept is_not_pointer = !std::is_pointer<typename std::remove_reference<T>::type>::value;
+
+template <typename T>
+concept is_const = std::is_const<typename std::remove_pointer<typename std::remove_reference<T>::type>::type>::value;
+
+template <typename T>
+concept is_not_const = !is_const<T>;
 
 class bit {
 public:
@@ -76,7 +82,7 @@ public:
     
     // Forces this object to use the other object's
     // function pointers
-    constexpr void clone(bit & obj) noexcept {
+    constexpr void clone(const bit & obj) noexcept {
         this->func_write_ = obj.func_write_;
         this->func_read_ = obj.func_read_;
     }
@@ -108,8 +114,10 @@ public:
     
     // Template polymorphism generator
     // Writes the value to a compile-time known variable
+    // If the variable is not const
     template <auto & reg, auto offset>
-    static constexpr void default_write_static(const bool value) {
+    static constexpr void default_write_static(const bool value) 
+    requires is_not_const<decltype(reg)> {
         using reg_type = std::remove_reference<decltype(reg)>::type;
         using value_type = std::remove_volatile<reg_type>::type;
         
@@ -123,6 +131,12 @@ public:
         const value_type reg_clr = reg & mask_clear;
         reg = reg_clr | value_type(value_type(value) * mask_bit);
     }
+    
+    // Template polymorphism generator
+    // If the variable is const, do not write to it
+    template <auto & reg, auto offset>
+    static constexpr void default_write_static(const bool) 
+    requires is_const<decltype(reg)> { }
     
     // Template polymorphism generator
     // Reads the value of a compile-time known variable
@@ -140,7 +154,8 @@ public:
     // Template polymorphism generator
     // Writes the value to a variable in a compile-time known pointer
     template <auto * & reg_ptr, auto offset>
-    static constexpr void default_write_dynamic(const bool value) {
+    static constexpr void default_write_dynamic(const bool value) 
+    requires is_not_const<decltype(reg_ptr)> {
         using ptr_type = std::remove_reference<decltype(reg_ptr)>::type;
         using reg_type = std::remove_pointer<ptr_type>::type;
         using value_type = std::remove_volatile<reg_type>::type;
@@ -155,6 +170,10 @@ public:
         const value_type reg_clr = *reg_ptr & mask_clear;
         *reg_ptr = reg_clr | value_type(value_type(value) * mask_bit);
     }
+    
+    template <auto & reg, auto offset>
+    static constexpr void default_write_dynamic(const bool) 
+    requires is_const<decltype(reg)> { }
     
     // Template polymorphism generator
     // Reads the value of a variable in a compile-time known pointer
