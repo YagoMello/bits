@@ -156,7 +156,7 @@ A `bit` to const var has an empty write function:
 const uint32_t constvar = 0b1111'1111;
 bits::bit cbit = bits::make_bit<constvar, 6>();
 
-cbit = false; // It is not error/undefined behaviour!
+cbit = false; // It is not error/undefined-behavior!
 
 std::cout << cbit << "\n"; // prints 1
 std::cout << constvar << "\n"; // prints 255 = 0b1111'1111
