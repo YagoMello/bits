@@ -64,10 +64,6 @@ public:
         this->write(obj.read());
     }
     
-    // Move constructor
-    // Makes no sense
-    bit(bit && obj) = delete;
-    
     // Sets the bit value
     constexpr bit & operator =(const bool value) {
         this->func_write_(value);
